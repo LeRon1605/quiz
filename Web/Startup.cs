@@ -1,4 +1,3 @@
-using Domain.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Persistence;
-using Persistence.Repositories;
+using Services;
+using Services.Abstractions;
 using Web.Middleware;
 
 namespace Web
@@ -26,14 +26,18 @@ namespace Web
             services.AddSwaggerGen(c =>
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Web", Version = "v1" }));
 
-            services.AddScoped<IRepositoryManager, RepositoryManager>();
-
             services.AddDbContextPool<RepositoryDbContext>(builder =>
             {
                 var connectionString = Configuration.GetConnectionString("Database");
 
                 builder.UseNpgsql(connectionString);
             });
+
+            services.AddTransient<IQuestionService, QuestionService>();
+            services.AddTransient<IQuizService, QuizService>();
+            services.AddTransient<IQuizSessionService, QuizSessionService>();
+
+            services.AddAutoMapper(typeof(Contracts.AssemblyReference).Assembly);
 
             services.AddTransient<ExceptionHandlingMiddleware>();
         }
